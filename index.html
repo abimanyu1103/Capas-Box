@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Monitoring IoT</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+        }
+        h1 { color: #333; margin-bottom: 10px; }
+        .status { color: #666; font-size: 0.9em; margin-bottom: 20px; }
+        
+        /* Bingkai Foto */
+        .photo-frame {
+            width: 100%;
+            height: 300px;
+            background-color: #eee;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px dashed #ccc;
+        }
+        
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Agar foto pas di kotak */
+            display: none; /* Sembunyikan kalau belum ada foto */
+        }
+
+        .loading { font-style: italic; color: #888; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>📸 Monitoring Kamera</h1>
+        <p class="status">Menunggu data dari ESP32...</p>
+        
+        <div class="photo-frame">
+            <span id="loading-text" class="loading">Belum ada foto...</span>
+            <img id="camera-image" src="" alt="Foto Terbaru">
+        </div>
+        
+        <p id="last-update" style="font-size: 12px; margin-top: 15px; color: #aaa;"></p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script>
+        // 2. PASTE CONFIG FIREBASE ANDA DI BAWAH INI (Ganti isi kurung kurawal)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAivAAEmeimjVd7qd3zFwuYlmPFlzGe6BE",
+            authDomain: "iot-kamera-project.firebaseapp.com",
+            databaseURL: "https://iot-kamera-project-default-rtdb.firebaseio.com",
+            projectId: "iot-kamera-project",
+            storageBucket: "iot-kamera-project.firebasestorage.app",
+            messagingSenderId: "37631237832",
+            appId: "1:37631237832:web:9279eaae7c14632d000ffd",
+            measurementId: "G-NY1SMQ7Z74"
+        };
+
+        // 3. Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // 4. Referensi ke path 'foto_terbaru' di database
+        // ESP32 nanti harus mengirim data ke path ini
+        const photoRef = db.ref('foto_terbaru');
+
+        // 5. Mendengarkan perubahan data secara Real-time
+        photoRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            
+            if (data && data.url) {
+                // Update tampilan HTML
+                const imgElement = document.getElementById('camera-image');
+                const loadingText = document.getElementById('loading-text');
+                const updateTime = document.getElementById('last-update');
+
+                imgElement.src = data.url;
+                imgElement.style.display = 'block';
+                loadingText.style.display = 'none';
+                
+                // Tampilkan timestamp jika ada
+                const now = new Date();
+                updateTime.innerText = "Terakhir update: " + now.toLocaleTimeString();
+            }
+        });
+    </script>
+</body>
+</html>
